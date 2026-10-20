@@ -77,3 +77,8 @@
   .more img { width: 36px; height: 36px; border-radius: 9px; }
   .game h3 a { text-decoration: none; }
   .game h3 a:hover { text-decoration: underline; }
+  .guide-hero { display: grid; gap: 20px; padding: 24px 0 8px; }
+  .guide-hero h1 { font-size: clamp(32px, 8.5vw, 52px); margin: 0 0 12px; text-wrap: balance; }
+  .guide-hero img { width: 100%; max-width: 260px; height: auto; border-radius: 18px; border: 1px solid var(--line); }
+  .prose h3 { font-size: 18px; font-weight: 800; margin: 18px 0 4px; }
+  @media (min-width: 720px) { .guide-hero { grid-template-columns: 1fr 260px; align-items: start; } }
