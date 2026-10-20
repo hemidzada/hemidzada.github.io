@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Train Tracks: Railway Logic Puzzle for Android | Panda.az Studio</title>
+<title>Train Tracks Puzzle Game: Railway Logic Puzzle for Android | Panda.az Studio</title>
 <meta name="description" content="Connect the railway from station A to station B. 2000 offline train track logic puzzles, each with one solution. Free on Google Play.">
 <link rel="canonical" href="https://panda.az/traintracks/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Panda.az Studio">
-<meta property="og:title" content="Train Tracks: Railway Logic Puzzle for Android | Panda.az Studio">
+<meta property="og:title" content="Train Tracks Puzzle Game: Railway Logic Puzzle for Android | Panda.az Studio">
 <meta property="og:description" content="Connect the railway from station A to station B. 2000 offline train track logic puzzles, each with one solution. Free on Google Play.">
 <meta property="og:url" content="https://panda.az/traintracks/">
 <meta property="og:image" content="https://panda.az/img/train-tracks.png">
@@ -110,13 +110,27 @@
   </section>
 
   <section class="prose">
-    <h2>How to play</h2>
+    <h2>How to play the train tracks puzzle</h2>
     <ul>
         <li>Slide your finger across the grid to draw rails. Curves and straights follow your finger.</li>
         <li>Tap next to a rail end to extend the line. Loose ends join nearby track by themselves.</li>
         <li>Mark cells you know are empty with ×, or erase anything with one swipe.</li>
         <li>Undo and redo as much as you like.</li>
     </ul>
+  </section>
+
+  <section class="prose">
+    <h2>Train tracks puzzle strategy</h2>
+    <h3>1. Clear the zeros</h3>
+    <p>A row or column marked 0 has no track at all. Mark every cell in it as empty first.</p>
+    <h3>2. Fill the full lines</h3>
+    <p>When a number equals the number of cells still open in its line, every one of those cells holds track.</p>
+    <h3>3. Follow the stations</h3>
+    <p>The line starts at A and ends at B, so the track next to each station must continue into the grid. Count which neighbours are still possible.</p>
+    <h3>4. No dead ends, no loops</h3>
+    <p>Every piece of track joins exactly two others, except at the stations. A cell that could only connect one way cannot hold track, and the line may never close into a loop.</p>
+    <h3>5. Mark empty cells as you go</h3>
+    <p>Each × you place lowers the options in its row and column, which often completes another line.</p>
   </section>
 
   <section class="prose">
