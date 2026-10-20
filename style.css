@@ -84,3 +84,7 @@
   @media (min-width: 720px) { .guide-hero { grid-template-columns: 1fr 240px; align-items: center; gap: 48px; } }
   .more a:has(img) { padding-left: 6px; }
   .prose li, .prose p { font-size: 17px; }
+.video { position: relative; display: block; max-width: 640px; border-radius: 18px; overflow: hidden; border: 1px solid var(--line); }
+.video img { display: block; width: 100%; height: auto; }
+.video-play { position: absolute; left: 50%; top: 50%; width: 68px; height: 48px; margin: -24px 0 0 -34px; border-radius: 14px; background: var(--accent); }
+.video-play::after { content: ""; position: absolute; left: 28px; top: 14px; border-style: solid; border-width: 10px 0 10px 16px; border-color: transparent transparent transparent #fff; }
