@@ -3,22 +3,169 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Train Tracks: Logic Puzzle</title>
+<title>Panda.az Studio</title>
+<meta name="description" content="Panda.az Studio makes calm puzzle and play games for Android: Train Tracks, SquishyCast and Pocket Logic.">
+<meta property="og:title" content="Panda.az Studio">
+<meta property="og:description" content="Small games, made with care. Puzzle and play games for Android.">
+<meta property="og:image" content="img/panda-mark.png">
+<link rel="icon" type="image/png" href="img/favicon.png">
+<link rel="apple-touch-icon" href="img/favicon.png">
+<meta name="theme-color" content="#F6F5F3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap" rel="stylesheet">
 <style>
-  :root { color-scheme: light dark; --bg:#fff; --fg:#1b2230; --muted:#5b6475; }
-  @media (prefers-color-scheme: dark) { :root { --bg:#0d1320; --fg:#e8ecf3; --muted:#9aa4b6; } }
-  body { margin:0; background:var(--bg); color:var(--fg); font:16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-  main { max-width: 640px; margin: 0 auto; padding: 48px 16px; }
-  a { color: #3d8bfd; }
-  .muted { color: var(--muted); }
+  :root {
+    color-scheme: light dark;
+    --bg: #F6F5F3; --surface: #FFFFFF; --fg: #141414; --muted: #5E5A55; --line: #E4E1DC;
+    --accent: #FF4A1C; --accent-ink: #FFFFFF; --mark-bg: transparent;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #000000; --surface: #111111; --fg: #F6F5F3; --muted: #A39E97; --line: #262626; --mark-bg: #F6F5F3; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.55 "Archivo", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+  a { color: inherit; }
+  .wrap { max-width: 960px; margin: 0 auto; padding: 0 16px; }
+
+  header { display: flex; align-items: center; justify-content: space-between; padding: 16px 0; }
+  .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+  .brand img { width: 40px; height: 40px; border-radius: 50%; background: var(--mark-bg); }
+  .wordmark { font-weight: 900; font-stretch: 125%; letter-spacing: .02em; font-size: 15px; line-height: 1; }
+  .wordmark span { display: block; font-weight: 600; font-size: 10px; letter-spacing: .32em; color: var(--muted); margin-top: 3px; }
+  nav a { font-weight: 600; font-size: 15px; text-decoration: none; color: var(--muted); margin-left: 18px; }
+  nav a:hover { color: var(--fg); }
+
+  .hero { display: grid; gap: 28px; align-items: center; padding: 32px 0 48px; }
+  .hero-mark { width: 168px; height: 168px; border-radius: 50%; background: var(--mark-bg); justify-self: start; }
+  .hero-mark img { width: 100%; height: 100%; display: block; }
+  h1 { font-weight: 900; font-stretch: 112%; font-size: clamp(38px, 10vw, 68px); line-height: .98; letter-spacing: -.01em; margin: 0 0 16px; }
+  h1 em { font-style: normal; color: var(--accent); }
+  .lede { font-size: 18px; color: var(--muted); max-width: 32ch; margin: 0 0 24px; }
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 22px; border-radius: 999px; background: var(--accent); color: var(--accent-ink); font-weight: 700; text-decoration: none; }
+  .btn:active { transform: scale(.98); }
+
+  section { padding: 40px 0; border-top: 1px solid var(--line); }
+  h2 { font-weight: 900; font-stretch: 112%; font-size: 13px; letter-spacing: .24em; text-transform: uppercase; color: var(--muted); margin: 0 0 20px; }
+
+  .games { display: grid; gap: 14px; }
+  .game { display: grid; grid-template-columns: 84px 1fr; gap: 16px; align-items: start; background: var(--surface); border: 1px solid var(--line); border-radius: 22px; padding: 16px; }
+  .game img { width: 84px; height: 84px; border-radius: 20px; display: block; }
+  .game h3 { font-size: 20px; font-weight: 800; line-height: 1.15; margin: 2px 0 4px; }
+  .game p { margin: 0 0 12px; color: var(--muted); font-size: 15px; }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+  .tag { font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+  .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; }
+  .play { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 12px; background: var(--fg); color: var(--bg); font-weight: 700; font-size: 14px; text-decoration: none; }
+  .play svg { width: 16px; height: 16px; }
+  .link { display: inline-flex; align-items: center; min-height: 44px; font-size: 14px; font-weight: 600; color: var(--muted); }
+  .soon { font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
+
+  .contact p { margin: 0 0 16px; color: var(--muted); max-width: 46ch; }
+  .mail { font-weight: 800; font-size: clamp(20px, 6vw, 28px); text-decoration-color: var(--accent); text-underline-offset: 6px; text-decoration-thickness: 3px; word-break: break-all; }
+
+  footer { border-top: 1px solid var(--line); padding: 24px 0 40px; font-size: 13px; color: var(--muted); }
+  footer ul { list-style: none; padding: 0; margin: 0 0 12px; display: flex; flex-wrap: wrap; gap: 4px 16px; }
+  footer a { color: var(--muted); }
+
+  @media (min-width: 720px) {
+    .hero { grid-template-columns: 1fr auto; padding: 64px 0 80px; }
+    .hero-mark { width: 260px; height: 260px; order: 2; }
+    .games { grid-template-columns: 1fr 1fr; }
+    .game { grid-template-columns: 96px 1fr; padding: 20px; }
+    .game img { width: 96px; height: 96px; border-radius: 22px; }
+  }
 </style>
 </head>
 <body>
-<main>
-<h1>Train Tracks: Logic Puzzle</h1>
-<p>Lay one unbroken railway from station A to station B. 2000 calm, offline logic puzzles for Android.</p>
-<p><a href="privacy.html">Privacy Policy</a></p>
-<p class="muted">Contact: <a href="mailto:hemidzada@yandex.com">hemidzada@yandex.com</a></p>
-</main>
+<div class="wrap">
+  <header>
+    <a class="brand" href="./" aria-label="Panda.az Studio home">
+      <img src="img/favicon.png" alt="" width="40" height="40">
+      <div class="wordmark">PANDA.AZ<span>STUDIO</span></div>
+    </a>
+    <nav><a href="#games">Games</a><a href="#contact">Contact</a></nav>
+  </header>
+
+  <div class="hero">
+    <div class="hero-mark"><img src="img/panda-mark.png" alt="Panda.az Studio panda" width="260" height="260"></div>
+    <div>
+      <h1>Small games,<br>made with <em>care.</em></h1>
+      <p class="lede">We make calm puzzle and play games for Android. Short sessions, no pressure, works offline.</p>
+      <a class="btn" href="#games">See our games</a>
+    </div>
+  </div>
+
+  <section id="games">
+    <h2>Our games</h2>
+    <div class="games">
+      <article class="game">
+        <img src="img/train-tracks.png" alt="Train Tracks icon" width="96" height="96" loading="lazy">
+        <div>
+          <h3>Train Tracks</h3>
+          <p>Lay one unbroken railway from station A to station B. 2000 calm, offline logic puzzles.</p>
+          <div class="tags"><span class="tag">Logic puzzle</span><span class="tag">Offline</span></div>
+          <div class="actions">
+            <a class="play" href="https://play.google.com/store/apps/details?id=com.studio.traintracks"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 3.5v17a1 1 0 0 0 1.5.86l14.2-8.5a1 1 0 0 0 0-1.72L6.5 2.64A1 1 0 0 0 5 3.5z"/></svg>Google Play</a>
+            <a class="link" href="privacy.html">Privacy</a>
+          </div>
+        </div>
+      </article>
+      <article class="game">
+        <img src="img/squishycast.png" alt="SquishyCast icon" width="96" height="96" loading="lazy">
+        <div>
+          <h3>SquishyCast</h3>
+          <p>Make a squishy toy, watch it come alive, squish it and dress it up. A soft, playful game for kids.</p>
+          <div class="tags"><span class="tag">Kids</span><span class="tag">Relaxing</span></div>
+          <div class="actions">
+            <a class="play" href="https://play.google.com/store/apps/details?id=com.pandaaz.squishycast"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 3.5v17a1 1 0 0 0 1.5.86l14.2-8.5a1 1 0 0 0 0-1.72L6.5 2.64A1 1 0 0 0 5 3.5z"/></svg>Google Play</a>
+            <a class="link" href="squishycast/privacy.html">Privacy</a>
+          </div>
+        </div>
+      </article>
+      <article class="game">
+        <img src="img/pocket-logic.png" alt="Pocket Logic icon" width="96" height="96" loading="lazy">
+        <div>
+          <h3>Pocket Logic</h3>
+          <p>Three logic puzzles in one pocket: Queens, Zip and Tango. New boards every day.</p>
+          <div class="tags"><span class="tag">Daily puzzles</span><span class="tag">Brain games</span></div>
+          <div class="actions">
+            <a class="play" href="https://play.google.com/store/apps/details?id=com.pandaaz.pocketlogic"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 3.5v17a1 1 0 0 0 1.5.86l14.2-8.5a1 1 0 0 0 0-1.72L6.5 2.64A1 1 0 0 0 5 3.5z"/></svg>Google Play</a>
+            <a class="link" href="pocketlogic/privacy.html">Privacy</a>
+          </div>
+        </div>
+      </article>
+      <article class="game">
+        <img src="img/pocket-words.png" alt="Pocket Words cards" width="96" height="96" loading="lazy">
+        <div>
+          <h3>Pocket Words</h3>
+          <p>Word solitaire: sort the cards into their categories. Plus a fresh four-group puzzle every day.</p>
+          <div class="tags"><span class="tag">Word game</span><span class="tag">Daily</span></div>
+          <div class="actions">
+            <span class="soon">Coming soon</span>
+            <a class="link" href="pocketwords/privacy.html">Privacy</a>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section id="contact" class="contact">
+    <h2>Contact</h2>
+    <p>Questions, bug reports or ideas for a puzzle? Write to us, we read every message.</p>
+    <a class="mail" href="mailto:hemidzada@yandex.com">hemidzada@yandex.com</a>
+  </section>
+
+  <footer>
+    <ul>
+      <li><a href="privacy.html">Train Tracks privacy</a></li>
+      <li><a href="squishycast/privacy.html">SquishyCast privacy</a></li>
+      <li><a href="pocketlogic/privacy.html">Pocket Logic privacy</a></li>
+      <li><a href="pocketwords/privacy.html">Pocket Words privacy</a></li>
+    </ul>
+    © 2026 Panda.az Studio
+  </footer>
+</div>
 </body>
 </html>
