@@ -1,0 +1,23 @@
+{
+  "_note": "Cross-promo list read by our apps (More from Panda.az). When an icon changes: replace img/<app>.png AND bump ?v= so apps download it again. SquishyCast (Families) is not listed and never reads this file.",
+  "apps": [
+    {
+      "package": "com.studio.traintracks",
+      "name": "Train Tracks",
+      "tagline": "Railway logic puzzles, 2000 levels",
+      "icon": "https://panda.az/img/train-tracks.png?v=2026-10-20"
+    },
+    {
+      "package": "com.pandaaz.pocketlogic",
+      "name": "Pocket Logic",
+      "tagline": "Queens · Zip · Tango",
+      "icon": "https://panda.az/img/pocket-logic.png?v=2026-10-20"
+    },
+    {
+      "package": "com.pandaaz.pocketwords",
+      "name": "Pocket Words",
+      "tagline": "Word solitaire with categories",
+      "icon": "https://panda.az/img/pocket-words.png?v=2026-10-21"
+    }
+  ]
+}
