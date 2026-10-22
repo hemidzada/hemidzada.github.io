@@ -129,8 +129,9 @@ function boardSvg(p, solved = true) {
       if (i < n * n - n && p.regions[i] !== p.regions[i + n]) out.push(`<line x1="${x}" y1="${y + s}" x2="${x + s}" y2="${y + s}" stroke="#1B1E3C" stroke-width="3"/>`);
     }
     if (solved) p.solution.forEach((c, r) => {
-      const x = c * s + 8, y = r * s + 8;
-      out.push(`<path transform="translate(${x} ${y}) scale(1)" d="M2 7l5 4 5-7 5 7 5-4-2 13H4z" fill="#1B1E3C"/>`);
+      const x = c * s + s * 0.14, y = r * s + s * 0.14, w = s * 0.72;
+      const pt = (u, v) => `${(x + u * w).toFixed(1)},${(y + v * w).toFixed(1)}`;
+      out.push(`<path d="M${[[0.12, 0.3], [0.33, 0.5], [0.5, 0.18], [0.67, 0.5], [0.88, 0.3], [0.8, 0.74], [0.2, 0.74]].map(([u, v]) => pt(u, v)).join('L')}Z" fill="#fff" stroke="#1B1E3C" stroke-width="1.8" stroke-linejoin="round"/><rect x="${(x + 0.2 * w).toFixed(1)}" y="${(y + 0.8 * w).toFixed(1)}" width="${(0.6 * w).toFixed(1)}" height="${(0.08 * w).toFixed(1)}" rx="1" fill="#fff" stroke="#1B1E3C" stroke-width="1.8"/>`);
     });
   } else if (p.game === 'zip') {
     for (let i = 0; i < n * n; i++) out.push(rect(i, '#FFFFFF'));
@@ -145,11 +146,24 @@ function boardSvg(p, solved = true) {
     for (let i = 0; i < n * n; i++) {
       out.push(rect(i, p.givens[i] >= 0 ? '#ECEFF3' : '#FFFFFF'));
       const v = solved ? p.solution[i] : p.givens[i];
-      if (v >= 0) out.push(v === 0
-        ? `<circle cx="${cx(i)}" cy="${cy(i)}" r="12" fill="#FFD23F" stroke="#C16300" stroke-width="2"/>`
-        : `<path transform="translate(${cx(i) - 13} ${cy(i) - 13}) scale(1.08)" d="M15.5 3.2A9 9 0 1 0 20.8 15 7.2 7.2 0 0 1 15.5 3.2z" fill="#3B6CF0"/>`);
+      const r = s * 0.34, [x, y] = [cx(i), cy(i)];
+      if (v === 0) {
+        for (let k = 0; k < 8; k++) {
+          const a = (k * Math.PI) / 4, dx = Math.cos(a), dy = Math.sin(a);
+          out.push(`<line x1="${(x + dx * r * 0.78).toFixed(1)}" y1="${(y + dy * r * 0.78).toFixed(1)}" x2="${(x + dx * r * 1.05).toFixed(1)}" y2="${(y + dy * r * 1.05).toFixed(1)}" stroke="#C16300" stroke-width="${(r * 0.22).toFixed(1)}" stroke-linecap="round"/>`);
+        }
+        out.push(`<circle cx="${x}" cy="${y}" r="${(r * 0.58).toFixed(1)}" fill="#FFD23F" stroke="#C16300" stroke-width="1.5"/>`);
+      } else if (v === 1) {
+        // Disc minus an offset disc: outer arc, then the inner arc back.
+        const R = r * 0.78, ox = x + r * 0.42, oy = y - r * 0.3, rr = r * 0.66;
+        out.push(`<mask id="m${i}"><rect x="${x - s / 2}" y="${y - s / 2}" width="${s}" height="${s}" fill="#fff"/><circle cx="${ox.toFixed(1)}" cy="${oy.toFixed(1)}" r="${rr.toFixed(1)}" fill="#000"/></mask><circle cx="${x}" cy="${y}" r="${R.toFixed(1)}" fill="#3B6CF0" mask="url(#m${i})"/>`);
+      }
     }
-    const sign = (x, y, k) => `<circle cx="${x}" cy="${y}" r="7" fill="#fff" stroke="#1B1E3C" stroke-width="1"/><text x="${x}" y="${y + 4}" text-anchor="middle" font-size="11" font-weight="800" fill="#1B1E3C" font-family="Archivo,sans-serif">${k === 's' ? '=' : '×'}</text>`;
+    const sign = (x, y, k) => {
+      const m = 2.7, ln = (a, b, c, d) => `<line x1="${x + a}" y1="${y + b}" x2="${x + c}" y2="${y + d}" stroke="#1B1E3C" stroke-width="1.6" stroke-linecap="round"/>`;
+      return `<circle cx="${x}" cy="${y}" r="6" fill="#F8F9FB" stroke="#1B1E3C" stroke-width="1.5"/>` +
+        (k === 's' ? ln(-m, -1.2, m, -1.2) + ln(-m, 1.2, m, 1.2) : ln(-m, -m, m, m) + ln(m, -m, -m, m));
+    };
     for (const k in p.h) out.push(sign((+k % n + 1) * s, Math.floor(+k / n) * s + s / 2, p.h[k]));
     for (const k in p.v) out.push(sign((+k % n) * s + s / 2, (Math.floor(+k / n) + 1) * s, p.v[k]));
   }
