@@ -11,13 +11,6 @@ const $ = (s) => document.querySelector(s);
 const boardEl = $('#board');
 const storeKey = `panda-daily:${game}:${day}`;
 
-const ICON = {
-  crown: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 7.5l4.6 4 4.4-6.5 4.4 6.5 4.6-4-1.9 11H4.9z"/><rect x="4.9" y="19.6" width="14.2" height="2" rx="1"/></svg>',
-  x: '<svg class="x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg>',
-  sun: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="var(--sun)" stroke="var(--sun-rim)" stroke-width="2"/></svg>',
-  moon: '<svg viewBox="0 0 24 24"><path d="M15.5 3.2A9 9 0 1 0 20.8 15 7.2 7.2 0 0 1 15.5 3.2z" fill="var(--moon)"/></svg>',
-};
-
 function load() {
   try {
     return JSON.parse(localStorage.getItem(storeKey)) || {};
@@ -47,55 +40,373 @@ function snapshot() {
 }
 
 // ------------------------------------------------------------ render
+// The board is one canvas painted like Pocket Logic's board painters, so
+// cells never resize and borders join cleanly.
 
-const cells = [];
-let trail = null;
+const canvas = document.createElement('canvas');
+const ctx = canvas.getContext('2d');
+let cs = 0, size = 0;
 
-function build() {
-  boardEl.style.gridTemplateColumns = `repeat(${n}, 1fr)`;
-  boardEl.classList.add(game[0]);
-  for (let i = 0; i < total; i++) {
-    const c = document.createElement('div');
-    c.className = 'cell';
-    c.dataset.i = i;
-    const r = Math.floor(i / n), col = i % n;
-    if (game === 'queens') {
-      c.style.background = `var(--r${P.regions[i]})`;
-      if (col < n - 1 && P.regions[i] !== P.regions[i + 1]) c.classList.add('rt');
-      if (r < n - 1 && P.regions[i] !== P.regions[i + n]) c.classList.add('bt');
-    } else if (game === 'zip') {
-      const walls = new Set(P.walls);
-      if (col < n - 1 && walls.has(wallKey(n, i, i + 1))) c.classList.add('wr');
-      if (r < n - 1 && walls.has(wallKey(n, i, i + n))) c.classList.add('wb');
-      const d = P.dots.indexOf(i);
-      if (d >= 0) c.innerHTML = `<span class="dot">${d + 1}</span>`;
-    } else if (P.givens[i] >= 0) {
-      c.classList.add('given');
-    }
-    cells.push(c);
-    boardEl.appendChild(c);
+const RISO = {
+  light: {
+    ink: '#1B1E3C', sheet: '#F8F9FB', moon: '#3B6CF0', zip: '#009A94', queens: '#7B57C8', tango: '#F7B83D',
+    regions: ['#FFAABC', '#7BE7E4', '#E3BA74', '#C7D7FF', '#76E3AB', '#D7ACE3', '#FFBDA5', '#75CCFF', '#D5DE8F'],
+  },
+  dark: {
+    ink: '#ECEEF6', sheet: '#1E2139', moon: '#5A80F2', zip: '#49C7C0', queens: '#AB93ED', tango: '#FAC053',
+    regions: ['#F594A3', '#5DDAE0', '#D7A75B', '#B0C6FF', '#6EC1A2', '#C99BD3', '#FFB296', '#52BAF4', '#C9C876'],
+  },
+};
+const INK = '#1B1E3C', ERROR = '#E03153', ERROR_INK = '#A3122F', YELLOW = '#FFD23F', SUN_RIM = '#C16300', ORANGE = '#FF7A3D';
+const darkQuery = matchMedia('(prefers-color-scheme: dark)');
+const theme = () => (darkQuery.matches ? RISO.dark : RISO.light);
+darkQuery.addEventListener?.('change', () => paint());
+
+const alpha = (hex, a) => hex + Math.round(a * 255).toString(16).padStart(2, '0');
+const cellXY = (i) => [(i % n) * cs, Math.floor(i / n) * cs];
+const center = (i) => [((i % n) + 0.5) * cs, (Math.floor(i / n) + 0.5) * cs];
+const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+
+function line(x1, y1, x2, y2, color, w, cap = 'round') {
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.strokeStyle = color;
+  ctx.lineWidth = w;
+  ctx.lineCap = cap;
+  ctx.stroke();
+}
+
+function roundRect(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.roundRect ? ctx.roundRect(x, y, w, h, r) : ctx.rect(x, y, w, h);
+}
+
+function hatch(i, color) {
+  const [x, y] = cellXY(i);
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(x, y, cs, cs);
+  ctx.clip();
+  const step = cs / 5;
+  for (let d = -cs; d < cs; d += step) line(x + d, y + cs, x + d + cs, y, alpha(color, 0.55), 2, 'butt');
+  ctx.restore();
+}
+
+function crownPath(x, y, w, h) {
+  const p = (u, v) => [x + u * w, y + v * h];
+  ctx.beginPath();
+  const pts = [[0.12, 0.3], [0.33, 0.5], [0.5, 0.18], [0.67, 0.5], [0.88, 0.3], [0.8, 0.74], [0.2, 0.74]];
+  pts.forEach(([u, v], k) => (k ? ctx.lineTo(...p(u, v)) : ctx.moveTo(...p(u, v))));
+  ctx.closePath();
+  const [bx, by] = p(0.2, 0.8);
+  const [ex, ey] = p(0.8, 0.88);
+  ctx.roundRect ? ctx.roundRect(bx, by, ex - bx, ey - by, w * 0.03) : ctx.rect(bx, by, ex - bx, ey - by);
+}
+
+function sun(cx, cy, r, rim) {
+  for (let k = 0; k < 8; k++) {
+    const a = (k * Math.PI) / 4, dx = Math.cos(a), dy = Math.sin(a);
+    line(cx + dx * r * 0.78, cy + dy * r * 0.78, cx + dx * r * 1.05, cy + dy * r * 1.05, rim || ORANGE, r * 0.22);
   }
-  if (game === 'zip') {
-    trail = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    trail.setAttribute('class', 'trail');
-    trail.setAttribute('viewBox', `0 0 ${n} ${n}`);
-    trail.innerHTML = `<polyline fill="none" stroke="var(--zip)" stroke-width="0.34" stroke-linecap="round" stroke-linejoin="round"/>`;
-    boardEl.appendChild(trail);
-  }
-  if (game === 'tango') {
-    const put = (i, s, horiz) => {
-      const el = document.createElement('span');
-      el.className = 'sign';
-      el.textContent = s === 's' ? '=' : '×';
-      const r = Math.floor(i / n), col = i % n;
-      el.style.left = `${((horiz ? col + 1 : col + 0.5) / n) * 100}%`;
-      el.style.top = `${((horiz ? r + 0.5 : r + 1) / n) * 100}%`;
-      boardEl.appendChild(el);
-    };
-    for (const k in P.h) put(+k, P.h[k], true);
-    for (const k in P.v) put(+k, P.v[k], false);
+  ctx.beginPath();
+  ctx.arc(cx, cy, r * 0.58, 0, Math.PI * 2);
+  ctx.fillStyle = YELLOW;
+  ctx.fill();
+  if (rim) {
+    ctx.lineWidth = clamp(r * 0.1, 1.5, 2.5);
+    ctx.strokeStyle = rim;
+    ctx.stroke();
   }
 }
+
+function moon(cx, cy, r, color) {
+  // Disc minus an offset disc, as Path.combine(difference) in the app.
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(0, 0, size, size);
+  ctx.arc(cx + r * 0.42, cy - r * 0.3, r * 0.66, 0, Math.PI * 2);
+  ctx.clip('evenodd');
+  ctx.beginPath();
+  ctx.arc(cx, cy, r * 0.78, 0, Math.PI * 2);
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.restore();
+}
+
+// --- effects (same timings as the app's CellFx)
+const fx = { cell: -1, popAt: -1e9, hint: -1, hintAt: -1e9, winAt: -1e9, bits: [] };
+const easeOutBack = (t) => 1 + 2.70158 * (t - 1) ** 3 + 1.70158 * (t - 1) ** 2;
+const easeOutCubic = (t) => 1 - (1 - t) ** 3;
+let raf = 0;
+function animate() {
+  if (!raf) raf = requestAnimationFrame(() => {
+    raf = 0;
+    paint();
+    const now = performance.now();
+    if (now - fx.popAt < 300 || now - fx.hintAt < 1400 || now - fx.winAt < 1300) animate();
+  });
+}
+function pop(i) {
+  fx.cell = i;
+  fx.popAt = performance.now();
+  animate();
+}
+function flash(i) {
+  fx.hint = i;
+  fx.hintAt = performance.now();
+  animate();
+}
+function celebrate() {
+  fx.winAt = performance.now();
+  fx.bits = Array.from({ length: 110 }, (_, i) => ({
+    angle: -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.4,
+    speed: 0.6 + Math.random() * 0.9,
+    spin: (Math.random() - 0.5) * 14,
+    size: 0.012 + Math.random() * 0.014,
+    hue: ['#7B57C8', '#009A94', '#F7B83D', '#FF8A65', '#5A80F2'][i % 5],
+  }));
+  animate();
+}
+const popScale = (i) => {
+  const t = (performance.now() - fx.popAt) / 180;
+  return i === fx.cell && t < 1 ? 0.6 + 0.4 * easeOutBack(t) : 1;
+};
+
+function paintQueens(T) {
+  const g = P.regions, bad = queensConflicts();
+  ctx.save();
+  roundRect(0, 0, size, size, 6);
+  ctx.clip();
+  for (let i = 0; i < total; i++) {
+    const [x, y] = cellXY(i);
+    ctx.fillStyle = T.regions[g[i] % T.regions.length];
+    ctx.fillRect(x, y, cs, cs);
+    if (bad.has(i)) hatch(i, ERROR);
+  }
+  ctx.restore();
+  for (let k = 1; k < n; k++) {
+    line(k * cs, 0, k * cs, size, alpha(INK, 0.18), 1, 'butt');
+    line(0, k * cs, size, k * cs, alpha(INK, 0.18), 1, 'butt');
+  }
+  const thick = clamp(cs * 0.07, 2, 4);
+  for (let i = 0; i < total; i++) {
+    const r = Math.floor(i / n), c = i % n;
+    if (c < n - 1 && g[i] !== g[i + 1]) line((c + 1) * cs, r * cs, (c + 1) * cs, (r + 1) * cs, INK, thick);
+    if (r < n - 1 && g[i] !== g[i + n]) line(c * cs, (r + 1) * cs, (c + 1) * cs, (r + 1) * cs, INK, thick);
+  }
+  for (let i = 0; i < total; i++) {
+    if (!state[i]) continue;
+    const k = popScale(i);
+    const [cx, cy] = center(i);
+    if (state[i] === 1) {
+      const m = cs * 0.1 * k, w = clamp(cs * 0.04, 1.2, 2.4);
+      line(cx - m, cy - m, cx + m, cy + m, alpha(INK, 0.4), w);
+      line(cx + m, cy - m, cx - m, cy + m, alpha(INK, 0.4), w);
+    } else {
+      const wrong = bad.has(i), s = cs * k, d = cs * 0.14 * k;
+      crownPath(cx - s / 2 + d, cy - s / 2 + d, s - 2 * d, s - 2 * d);
+      ctx.fillStyle = '#fff';
+      ctx.fill();
+      ctx.lineJoin = 'round';
+      ctx.lineWidth = clamp(cs * (wrong ? 0.07 : 0.045), 1.5, 4);
+      ctx.strokeStyle = wrong ? ERROR_INK : INK;
+      ctx.stroke();
+      if (wrong) {
+        ctx.beginPath();
+        ctx.arc(cx, cy, cs * 0.44, 0, Math.PI * 2);
+        ctx.lineWidth = clamp(cs * 0.06, 2, 4);
+        ctx.stroke();
+      }
+    }
+  }
+  roundRect(0, 0, size, size, 6);
+  ctx.lineWidth = thick * 1.3;
+  ctx.strokeStyle = INK;
+  ctx.stroke();
+}
+
+function paintZip(T) {
+  const ink = T.ink, tone = T.zip;
+  roundRect(0, 0, size, size, 6);
+  ctx.fillStyle = T.sheet;
+  ctx.fill();
+  ctx.fillStyle = alpha(tone, 0.16);
+  for (const i of state) ctx.fillRect(...cellXY(i), cs, cs);
+  for (let k = 1; k < n; k++) {
+    line(k * cs, 0, k * cs, size, alpha(ink, 0.16), 1, 'butt');
+    line(0, k * cs, size, k * cs, alpha(ink, 0.16), 1, 'butt');
+  }
+  if (state.length > 1) {
+    ctx.beginPath();
+    state.forEach((i, k) => (k ? ctx.lineTo(...center(i)) : ctx.moveTo(...center(i))));
+    ctx.strokeStyle = tone;
+    ctx.lineWidth = cs * 0.34;
+    ctx.lineCap = ctx.lineJoin = 'round';
+    ctx.stroke();
+  }
+  const wall = clamp(cs * 0.1, 3, 6);
+  for (const key of P.walls) {
+    const a = Math.floor(key / total), b = key % total, ra = Math.floor(a / n), ca = a % n;
+    if (b === a + 1) line((ca + 1) * cs, ra * cs, (ca + 1) * cs, (ra + 1) * cs, ink, wall);
+    else line(ca * cs, (ra + 1) * cs, (ca + 1) * cs, (ra + 1) * cs, ink, wall);
+  }
+  roundRect(0, 0, size, size, 6);
+  ctx.lineWidth = wall;
+  ctx.strokeStyle = ink;
+  ctx.stroke();
+  const head = state[state.length - 1];
+  if (state.length && !done) {
+    const [hx, hy] = center(head);
+    ctx.beginPath();
+    if (P.dots.includes(head)) {
+      ctx.arc(hx, hy, cs * 0.41, 0, Math.PI * 2);
+      ctx.lineWidth = cs * 0.06;
+      ctx.strokeStyle = ink;
+      ctx.stroke();
+    } else {
+      ctx.arc(hx, hy, cs * 0.1, 0, Math.PI * 2);
+      ctx.fillStyle = '#fff';
+      ctx.fill();
+    }
+  }
+  const reached = state.filter((i) => P.dots.includes(i)).length;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = `900 ${cs * 0.32}px Archivo, system-ui, sans-serif`;
+  P.dots.forEach((d, k) => {
+    const [x, y] = center(d);
+    ctx.beginPath();
+    ctx.arc(x, y, cs * 0.3, 0, Math.PI * 2);
+    ctx.fillStyle = k < reached ? tone : ink;
+    ctx.fill();
+    ctx.fillStyle = T.sheet;
+    ctx.fillText(String(k + 1), x, y + cs * 0.02);
+  });
+}
+
+function paintTango(T) {
+  const ink = T.ink, light = T === RISO.light, bad = tangoConflicts();
+  roundRect(0, 0, size, size, 6);
+  ctx.fillStyle = T.sheet;
+  ctx.fill();
+  for (let i = 0; i < total; i++) {
+    const [x, y] = cellXY(i), [cx, cy] = center(i);
+    if (P.givens[i] >= 0) {
+      ctx.fillStyle = alpha(ink, 0.08);
+      ctx.fillRect(x, y, cs, cs);
+    }
+    if (bad.has(i)) hatch(i, ERROR);
+    const r = cs * 0.34 * popScale(i);
+    if (state[i] === 0) sun(cx, cy, r, light ? SUN_RIM : null);
+    if (state[i] === 1) moon(cx, cy, r, T.moon);
+  }
+  for (let k = 1; k < n; k++) {
+    line(k * cs, 0, k * cs, size, alpha(ink, 0.2), 1, 'butt');
+    line(0, k * cs, size, k * cs, alpha(ink, 0.2), 1, 'butt');
+  }
+  roundRect(0, 0, size, size, 6);
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = ink;
+  ctx.stroke();
+  const sign = (x, y, s) => {
+    const r = cs * 0.15, m = r * 0.45, w = clamp(cs * 0.04, 1.5, 3);
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fillStyle = T.sheet;
+    ctx.fill();
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = ink;
+    ctx.stroke();
+    if (s === 's') {
+      line(x - m, y - m * 0.45, x + m, y - m * 0.45, ink, w);
+      line(x - m, y + m * 0.45, x + m, y + m * 0.45, ink, w);
+    } else {
+      line(x - m, y - m, x + m, y + m, ink, w);
+      line(x + m, y - m, x - m, y + m, ink, w);
+    }
+  };
+  for (const k in P.h) sign(((+k % n) + 1) * cs, (Math.floor(+k / n) + 0.5) * cs, P.h[k]);
+  for (const k in P.v) sign(((+k % n) + 0.5) * cs, (Math.floor(+k / n) + 1) * cs, P.v[k]);
+}
+
+function paintFx(T) {
+  const now = performance.now(), color = T[game];
+  const tp = (now - fx.popAt) / 280;
+  if (fx.cell >= 0 && tp < 1) {
+    const t = easeOutCubic(tp), [x, y] = center(fx.cell);
+    ctx.beginPath();
+    ctx.arc(x, y, cs * (0.25 + 0.45 * t), 0, Math.PI * 2);
+    ctx.lineWidth = cs * 0.09 * (1 - t) + 1;
+    ctx.strokeStyle = alpha(color, 0.85 * (1 - t));
+    ctx.stroke();
+  }
+  const th = (now - fx.hintAt) / 1400;
+  if (fx.hint >= 0 && th < 1) {
+    const [x, y] = cellXY(fx.hint);
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = alpha(T.moon, 1 - th);
+    ctx.strokeRect(x + 2, y + 2, cs - 4, cs - 4);
+  }
+  const tw = (now - fx.winAt) / 1100;
+  if (tw < 1) {
+    const front = tw * (2 * n + 2) - 1.5;
+    for (let i = 0; i < total; i++) {
+      const d = front - (Math.floor(i / n) + (i % n));
+      if (d <= 0 || d >= 3) continue;
+      const a = Math.sin((Math.PI * d) / 3), [x, y] = cellXY(i), inset = cs * 0.08 * (1 - a);
+      roundRect(x + inset, y + inset, cs - 2 * inset, cs - 2 * inset, cs * 0.18);
+      ctx.fillStyle = T === RISO.dark ? alpha(color, 0.35 * a) : alpha('#FFFFFF', 0.5 * a);
+      ctx.fill();
+    }
+  }
+  const tc = (now - fx.winAt) / 1200;
+  if (tc < 1) {
+    for (const b of fx.bits) {
+      const v = b.speed * size, s = b.size * size;
+      const x = size / 2 + Math.cos(b.angle) * v * tc;
+      const y = size * 0.55 + Math.sin(b.angle) * v * tc + 1.1 * size * tc * tc;
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(b.spin * tc);
+      ctx.globalAlpha = clamp(1 - tc * tc, 0, 1);
+      ctx.fillStyle = b.hue;
+      ctx.fillRect(-s / 2, -s * 0.3, s, s * 0.6);
+      ctx.restore();
+    }
+  }
+}
+
+function paint() {
+  const T = theme();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const dpr = canvas.width / size;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  if (game === 'queens') paintQueens(T);
+  else if (game === 'zip') paintZip(T);
+  else paintTango(T);
+  paintFx(T);
+}
+
+function resize() {
+  size = boardEl.clientWidth;
+  cs = size / n;
+  const dpr = Math.min(window.devicePixelRatio || 1, 3);
+  canvas.width = Math.round(size * dpr);
+  canvas.height = Math.round(size * dpr);
+  paint();
+}
+
+function build() {
+  canvas.setAttribute('role', 'img');
+  boardEl.appendChild(canvas);
+  new ResizeObserver(resize).observe(boardEl);
+  resize();
+  document.fonts?.ready.then(paint);
+}
+
+let last = null;
 
 function queensConflicts() {
   const bad = new Set();
@@ -143,26 +454,17 @@ function tangoConflicts() {
 }
 
 function render() {
-  if (game === 'queens') {
-    const bad = queensConflicts();
-    cells.forEach((c, i) => {
-      c.innerHTML = state[i] === 2 ? ICON.crown : state[i] === 1 ? ICON.x : '';
-      c.classList.toggle('bad', bad.has(i));
-    });
-  } else if (game === 'tango') {
-    const bad = tangoConflicts();
-    cells.forEach((c, i) => {
-      c.innerHTML = state[i] === 0 ? ICON.sun : state[i] === 1 ? ICON.moon : '';
-      c.classList.toggle('bad', bad.has(i));
-    });
-  } else {
-    const on = new Set(state);
-    cells.forEach((c, i) => c.classList.toggle('on', on.has(i)));
-    trail.firstChild.setAttribute(
-      'points',
-      state.map((i) => `${(i % n) + 0.5},${Math.floor(i / n) + 0.5}`).join(' '),
-    );
+  // Pop the newest mark, as the app does.
+  if (last) {
+    if (game === 'zip') {
+      if (state.length > last.length) pop(state[state.length - 1]);
+    } else {
+      const k = state.findIndex((v, i) => v !== last[i] && v !== (game === 'queens' ? 0 : -1));
+      if (k >= 0) pop(k);
+    }
   }
+  last = state.slice();
+  paint();
   $('#undo').disabled = !history.length || done;
 }
 
@@ -280,13 +582,6 @@ $('#clear').addEventListener('click', () => {
   render();
 });
 
-function flash(i) {
-  const c = cells[i];
-  c.classList.remove('flash');
-  void c.offsetWidth;
-  c.classList.add('flash');
-}
-
 function hint() {
   if (!started || done) return;
   assisted = true;
@@ -386,6 +681,7 @@ function check() {
   $('#timer').textContent = fmt(elapsed);
   render();
   ['undo', 'clear', 'hint'].forEach((id) => ($('#' + id).disabled = true));
+  celebrate();
   save({ ms: Math.round(elapsed), assisted });
   showWin(Math.round(elapsed));
   if (P.live && runId && !assisted) submit();
@@ -479,6 +775,7 @@ if (saved.ms != null) {
   else if (game === 'tango') state = P.solution.slice();
   else state = P.solution.reduce((s, c, r) => ((s[r * n + c] = 2), s), new Array(total).fill(0));
   $('#timer').textContent = fmt(saved.ms);
+  last = null;
   render();
   showWin(saved.ms, true);
   if (saved.rank) $('#win-text').textContent = `You were #${saved.rank} on this board.`;
