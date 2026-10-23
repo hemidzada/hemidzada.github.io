@@ -8,3 +8,11 @@
 /pocketcards /sunday-solitaire/ 301
 /pocketcards/ /sunday-solitaire/ 301
 /pocketcards/index.html /sunday-solitaire/ 301
+
+# Pocket Logic -> KinQueens, Pocket Words -> Kinwords. Old privacy files stay (Play listing URLs).
+/pocketlogic /kinqueens/ 301
+/pocketlogic/ /kinqueens/ 301
+/pocketlogic/index.html /kinqueens/ 301
+/pocketwords /kinwords/ 301
+/pocketwords/ /kinwords/ 301
+/pocketwords/index.html /kinwords/ 301
