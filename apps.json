@@ -9,15 +9,15 @@
     },
     {
       "package": "com.pandaaz.pocketlogic",
-      "name": "Pocket Logic",
+      "name": "KinQueens",
       "tagline": "Queens · Path · Sun & Moon",
-      "icon": "https://panda.az/img/pocket-logic.png?v=2026-10-20"
+      "icon": "https://panda.az/img/pocket-logic.png?v=2026-10-23"
     },
     {
       "package": "com.pandaaz.pocketwords",
-      "name": "Pocket Words",
+      "name": "Kinwords",
       "tagline": "Word solitaire with categories",
-      "icon": "https://panda.az/img/pocket-words.png?v=2026-10-21"
+      "icon": "https://panda.az/img/pocket-words.png?v=2026-10-23"
     }
   ]
 }

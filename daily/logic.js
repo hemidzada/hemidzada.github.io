@@ -1,5 +1,5 @@
 // Puzzle generators, solvers and rule checks for the daily Queens, Zip and
-// Tango boards. A line-by-line port of Pocket Logic's lib/logic/*.dart, so a
+// Tango boards. A line-by-line port of KinQueens's lib/logic/*.dart, so a
 // given date gives the same board on the site and in the app.
 // Used by the page script, the static build (tools/build-daily.mjs) and the
 // leaderboard edge function.

@@ -231,7 +231,7 @@ const FOOTER = `<footer>
     <ul>
       <li><a href="/">Panda.az Studio</a></li>
       <li><a href="/daily/">Daily puzzles</a></li>
-      <li><a href="/pocketlogic/privacy.html">Pocket Logic privacy</a></li>
+      <li><a href="/pocketlogic/privacy.html">KinQueens privacy</a></li>
       <li><a href="mailto:hello@panda.az">hello@panda.az</a></li>
       <li><a href="https://play.google.com/store/apps/dev?id=7946829773877726722">All our games on Google Play</a></li>
     </ul>
@@ -248,9 +248,9 @@ const crumbsLd = (items) => ({
 
 function appPanel(title) {
   return `<div class="panel app">
-        <img src="/img/pocket-logic.png" alt="Pocket Logic icon" width="64" height="64">
+        <img src="/img/pocket-logic.png" alt="KinQueens icon" width="64" height="64">
         <div>
-          <p><strong>Same board in the app.</strong> Pocket Logic has today’s ${title} plus hundreds of levels, streaks and hints. Free, works offline.</p>
+          <p><strong>Same board in the app.</strong> KinQueens has today’s ${title} plus hundreds of levels, streaks and hints. Free, works offline.</p>
           <a class="play" href="${PLAY_URL}">${PLAY_SVG}Play in the app</a>
         </div>
       </div>`;

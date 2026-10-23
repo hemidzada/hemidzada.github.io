@@ -40,7 +40,7 @@ function snapshot() {
 }
 
 // ------------------------------------------------------------ render
-// The board is one canvas painted like Pocket Logic's board painters, so
+// The board is one canvas painted like KinQueens's board painters, so
 // cells never resize and borders join cleanly.
 
 const canvas = document.createElement('canvas');
