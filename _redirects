@@ -1,0 +1,5 @@
+# The Zip and Tango pages moved to generic names.
+/zip /path/ 301
+/zip/* /path/:splat 301
+/tango /sun-moon/ 301
+/tango/* /sun-moon/:splat 301
