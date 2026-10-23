@@ -35,6 +35,7 @@ const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replac
 
 const GAMES = {
   queens: {
+    slug: 'queens',
     title: 'Queens',
     color: 'var(--queens)',
     rule: 'Place one crown in every row, every column and every colour region. Crowns may not touch, not even at a corner.',
@@ -42,20 +43,24 @@ const GAMES = {
     how: 'Tap a cell once for ✕, twice for a crown. Drag across empty cells to mark many ✕ at once.',
   },
   zip: {
-    title: 'Zip',
+    slug: 'path',
+    title: 'Path',
     color: 'var(--zip)',
     rule: 'Draw one line that passes through every cell, visiting the numbered dots in order from 1. The line cannot cross a wall.',
     short: 'One line through every cell, in order',
     how: 'Start on dot 1 and drag. Drag back to undo the last steps, or tap any cell on the line to cut it there.',
   },
   tango: {
-    title: 'Tango',
+    slug: 'sun-moon',
+    title: 'Sun & Moon',
     color: 'var(--tango)',
     rule: 'Fill every cell with a sun or a moon. Each row and column has as many suns as moons, never three of the same in a row. Cells joined by = match, cells joined by × are different.',
     short: 'Balance suns and moons',
     how: 'Tap a cell once for a sun, twice for a moon, three times to clear it. Grey cells are given.',
   },
 };
+// Internal keys (zip, tango) stay as the logic and leaderboard ids; pages use
+// generic names and slugs, since the old names are another company's marks.
 const REGION_NAMES = ['pink', 'aqua', 'sand', 'periwinkle', 'mint', 'lilac', 'peach', 'sky blue', 'lime'];
 const REGION_HEX = ['#FFAABC', '#7BE7E4', '#E3BA74', '#C7D7FF', '#76E3AB', '#D7ACE3', '#FFBDA5', '#75CCFF', '#D5DE8F'];
 
@@ -260,7 +265,7 @@ function dayPage(game, day) {
   const isToday = day === TODAY;
   const live = day >= addDays(TODAY, -1) && day >= RANKED_FROM;
   const ranked = day >= RANKED_FROM;
-  const path = `/${game}/${day}/`;
+  const path = `/${G.slug}/${day}/`;
   const nice = longDate(day);
   const title = `${G.title} Puzzle ${nice}: Play, Hint and Answer | Panda.az`;
   const description = `Play the ${G.title} puzzle for ${nice} free in your browser: ${f.lead}. Get a hint, check the answer and see the day’s fastest players.`;
@@ -278,13 +283,13 @@ function dayPage(game, day) {
       author: { '@type': 'Organization', name: 'Panda.az Studio', url: SITE + '/' },
       publisher: { '@type': 'Organization', name: 'Panda.az Studio', url: SITE + '/' },
     },
-    crumbsLd([['Panda.az Studio', '/'], ['Daily puzzles', '/daily/'], [`${G.title} archive`, `/${game}/archive/`], [nice, path]]),
+    crumbsLd([['Panda.az Studio', '/'], ['Daily puzzles', '/daily/'], [`${G.title} archive`, `/${G.slug}/archive/`], [nice, path]]),
   ];
   return `${head({ title, description, path, extraLd: ld })}
 <body style="--game:${G.color}">
 <div class="wrap">
   ${HEADER}
-  <div class="crumb"><a href="/">Panda.az Studio</a> / <a href="/daily/">Daily puzzles</a> / <a href="/${game}/archive/">${G.title}</a> / ${nice}</div>
+  <div class="crumb"><a href="/">Panda.az Studio</a> / <a href="/daily/">Daily puzzles</a> / <a href="/${G.slug}/archive/">${G.title}</a> / ${nice}</div>
   <div class="day-head">
     <span class="kicker">${isToday ? 'Today’s' : 'Daily'} ${G.title}${isWeekend(day) ? ' · weekend size' : ''}</span>
     <h1>${G.title} puzzle for ${nice}</h1>
@@ -326,16 +331,16 @@ ${ranked ? `      <div class="panel">
   </div>
 
   <div class="daynav">
-    ${prev ? `<a href="/${game}/${prev}/">← ${shortDate(prev)}</a>` : '<span class="ghost"></span>'}
-    <a href="/${game}/archive/">All ${G.title} puzzles</a>
-    ${next ? `<a href="/${game}/${next}/">${shortDate(next)} →</a>` : '<span class="ghost"></span>'}
+    ${prev ? `<a href="/${G.slug}/${prev}/">← ${shortDate(prev)}</a>` : '<span class="ghost"></span>'}
+    <a href="/${G.slug}/archive/">All ${G.title} puzzles</a>
+    ${next ? `<a href="/${G.slug}/${next}/">${shortDate(next)} →</a>` : '<span class="ghost"></span>'}
   </div>
 
   <section class="prose">
     <h2>How to play</h2>
     <p>${G.title} for ${nice} is ${f.lead}. ${G.rule}</p>
     <p>${G.how}</p>
-    <p>New to ${G.title}? Read the <a href="/${game}/">${G.title} rules and strategy guide</a>.</p>
+    <p>New to ${G.title}? Read the <a href="/${G.slug}/">${G.title} rules and strategy guide</a>.</p>
   </section>
 
   <section class="prose">
@@ -350,7 +355,7 @@ ${ranked ? `      <div class="panel">
   <section>
     <h2>More daily puzzles</h2>
     <div class="more">
-${Object.keys(GAMES).filter((g) => g !== game).map((g) => `      <a href="/${g}/${day}/">${GAMES[g].title} for ${shortDate(day)}</a>`).join('\n')}
+${Object.keys(GAMES).filter((g) => g !== game).map((g) => `      <a href="/${GAMES[g].slug}/${day}/">${GAMES[g].title} for ${shortDate(day)}</a>`).join('\n')}
       <a href="/daily/">All daily puzzles</a>
     </div>
   </section>
@@ -368,7 +373,7 @@ ${Object.keys(GAMES).filter((g) => g !== game).map((g) => `      <a href="/${g}/
 
 function archivePage(game) {
   const G = GAMES[game];
-  const path = `/${game}/archive/`;
+  const path = `/${G.slug}/archive/`;
   const title = `${G.title} Puzzle Archive: Play Every Past Daily Board | Panda.az`;
   const description = `Every daily ${G.title} puzzle since ${longDate(FIRST_DAY)}, free to play in your browser with hints and answers.`;
   const months = new Map();
@@ -381,7 +386,7 @@ function archivePage(game) {
     const [y, mo] = m.split('-').map(Number);
     const firstDow = (new Date(Date.UTC(y, mo - 1, 1)).getUTCDay() + 6) % 7; // Monday first
     const lead = Array.from({ length: firstDow + Number(ds[0].slice(8)) - 1 }, () => '<span></span>').join('');
-    const links = ds.map((d) => `<a href="/${game}/${d}/" data-day="${d}"${d === TODAY ? ' class="today"' : ''} aria-label="${G.title} ${longDate(d)}">${Number(d.slice(8))}</a>`).join('');
+    const links = ds.map((d) => `<a href="/${G.slug}/${d}/" data-day="${d}"${d === TODAY ? ' class="today"' : ''} aria-label="${G.title} ${longDate(d)}">${Number(d.slice(8))}</a>`).join('');
     return `<div><h3>${MONTHS[mo - 1]} ${y}</h3><div class="days">${['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'].map((x) => `<span class="dow">${x}</span>`).join('')}${lead}${links}</div></div>`;
   });
   return `${head({ title, description, path, extraLd: [crumbsLd([['Panda.az Studio', '/'], ['Daily puzzles', '/daily/'], [`${G.title} archive`, path]])] })}
@@ -392,7 +397,7 @@ function archivePage(game) {
   <div class="day-head">
     <span class="kicker">${G.title} archive</span>
     <h1>Every daily ${G.title} puzzle</h1>
-    <p>Pick any day to play it. Filled days are ones you solved on this device. Today’s board: <a href="/${game}/${TODAY}/">${longDate(TODAY)}</a>.</p>
+    <p>Pick any day to play it. Filled days are ones you solved on this device. Today’s board: <a href="/${G.slug}/${TODAY}/">${longDate(TODAY)}</a>.</p>
   </div>
   <section class="cal">
 ${blocks.join('\n')}
@@ -414,11 +419,11 @@ ${blocks.join('\n')}
 
 function hubPage() {
   const path = '/daily/';
-  const title = 'Daily Logic Puzzles: Queens, Zip and Tango Free Online | Panda.az';
-  const description = 'Three new logic puzzles every day: Queens, Zip and Tango. Play free in your browser, race the clock and get on the daily top 100.';
+  const title = 'Daily Logic Puzzles: Queens, Path and Sun & Moon Free Online | Panda.az';
+  const description = 'Three new logic puzzles every day: Queens, Path and Sun & Moon. Play free in your browser, race the clock and get on the daily top 100.';
   const cards = Object.entries(GAMES).map(([g, G]) => {
     const p = puzzle(g, TODAY);
-    return `<a href="/${g}/${TODAY}/" style="--game:${G.color}"><h3>${G.title}</h3><p>${p.n}×${p.n} · ${G.short}</p><div class="mini">${boardSvg(p, false)}</div></a>`;
+    return `<a href="/${G.slug}/${TODAY}/" style="--game:${G.color}"><h3>${G.title}</h3><p>${p.n}×${p.n} · ${G.short}</p><div class="mini">${boardSvg(p, false)}</div></a>`;
   });
   return `${head({ title, description, path, extraLd: [crumbsLd([['Panda.az Studio', '/'], ['Daily puzzles', path]])] })}
 <body style="--game:var(--accent)">
@@ -428,7 +433,7 @@ function hubPage() {
   <div class="day-head">
     <span class="kicker">${longDate(TODAY)}</span>
     <h1>Today’s logic puzzles</h1>
-    <p>A new Queens, Zip and Tango board every day, the same for everyone. Each has exactly one solution, checked by a solver. Solve without hints to join the day’s top 100.</p>
+    <p>A new Queens, Path and Sun & Moon board every day, the same for everyone. Each has exactly one solution, checked by a solver. Solve without hints to join the day’s top 100.</p>
   </div>
   <section class="hub">
 ${cards.map((c) => '    ' + c).join('\n')}
@@ -436,7 +441,7 @@ ${cards.map((c) => '    ' + c).join('\n')}
   <section>
     <h2>Archives</h2>
     <div class="more">
-${Object.entries(GAMES).map(([g, G]) => `      <a href="/${g}/archive/">${G.title} archive</a>`).join('\n')}
+${Object.entries(GAMES).map(([g, G]) => `      <a href="/${G.slug}/archive/">${G.title} archive</a>`).join('\n')}
     </div>
   </section>
   <section>${appPanel('puzzles')}</section>
@@ -453,14 +458,14 @@ function guideBlock(game) {
   const G = GAMES[game];
   return `<!-- daily:start -->
   <div class="daily-strip">
-    <a class="btn" href="/${game}/${TODAY}/">Play today’s ${G.title} online</a>
-    <a class="link" href="/${game}/archive/">Past ${G.title} puzzles</a>
+    <a class="btn" href="/${G.slug}/${TODAY}/">Play today’s ${G.title} online</a>
+    <a class="link" href="/${G.slug}/archive/">Past ${G.title} puzzles</a>
   </div>
   <!-- daily:end -->`;
 }
 
 function updateGuide(game) {
-  const rel = `${game}/index.html`;
+  const rel = `${GAMES[game].slug}/index.html`;
   let html = readFileSync(join(ROOT, rel), 'utf8');
   if (html.includes('<!-- daily:start -->')) {
     html = html.replace(/<!-- daily:start -->[\s\S]*?<!-- daily:end -->/, guideBlock(game));
@@ -477,13 +482,13 @@ function updateSitemap() {
   const old = readFileSync(join(ROOT, rel), 'utf8');
   const keep = old
     .split('\n')
-    .filter((l) => l.includes('<url>') && !/\/(queens|zip|tango)\/(\d{4}-\d\d-\d\d|archive)\/|\/daily\//.test(l));
+    .filter((l) => l.includes('<url>') && !/\/(queens|zip|tango|path|sun-moon)\/(\d{4}-\d\d-\d\d|archive)\/|\/daily\//.test(l));
   const urls = [`  <url><loc>${SITE}/daily/</loc><lastmod>${TODAY}</lastmod></url>`];
-  for (const g of Object.keys(GAMES)) {
-    urls.push(`  <url><loc>${SITE}/${g}/archive/</loc><lastmod>${TODAY}</lastmod></url>`);
+  for (const G of Object.values(GAMES)) {
+    urls.push(`  <url><loc>${SITE}/${G.slug}/archive/</loc><lastmod>${TODAY}</lastmod></url>`);
     for (const d of [...days].reverse()) {
       // A page changes the day after it goes up (its "next" link appears).
-      urls.push(`  <url><loc>${SITE}/${g}/${d}/</loc><lastmod>${d === TODAY ? d : addDays(d, 1)}</lastmod></url>`);
+      urls.push(`  <url><loc>${SITE}/${G.slug}/${d}/</loc><lastmod>${d === TODAY ? d : addDays(d, 1)}</lastmod></url>`);
     }
   }
   put(rel, `<?xml version="1.0" encoding="UTF-8"?>
@@ -496,8 +501,8 @@ ${[...keep, ...urls].join('\n')}
 // ---------------------------------------------------------------- main
 
 for (const g of Object.keys(GAMES)) {
-  for (const d of days) put(`${g}/${d}/index.html`, dayPage(g, d));
-  put(`${g}/archive/index.html`, archivePage(g));
+  for (const d of days) put(`${GAMES[g].slug}/${d}/index.html`, dayPage(g, d));
+  put(`${GAMES[g].slug}/archive/index.html`, archivePage(g));
   updateGuide(g);
 }
 put('daily/index.html', hubPage());
