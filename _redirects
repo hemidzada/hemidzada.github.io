@@ -3,3 +3,8 @@
 /zip/* /path/:splat 301
 /tango /sun-moon/ 301
 /tango/* /sun-moon/:splat 301
+
+# Pocket Cards launched as Sunday Solitaire Collection. /pocketcards/privacy stays a real file (Play listing URL).
+/pocketcards /sunday-solitaire/ 301
+/pocketcards/ /sunday-solitaire/ 301
+/pocketcards/index.html /sunday-solitaire/ 301
