@@ -4,7 +4,10 @@
 //   POST /name   {id, name}          -> {ok}            top 100 only
 //   GET  /top?game=&day=&me=<id>     -> {total, top: [{rank, name, ms, me}]}
 // The answer is checked against the regenerated daily board, the time is
-// measured on the server, only the first solve per player per board counts.
+// measured on the server, only the first solve per network (hashed IP) per
+// board counts.
+// Deploy: upload this file plus daily/logic.js as ./logic.js (the function
+// imports it from its own folder); both from the same commit.
 import { createClient } from 'npm:@supabase/supabase-js@2.45.4';
 import { dailyPuzzle, isSolved } from './logic.js';
 

@@ -246,12 +246,12 @@ const crumbsLd = (items) => ({
   itemListElement: items.map(([name, path], k) => ({ '@type': 'ListItem', position: k + 1, name, item: SITE + path })),
 });
 
-function appPanel(title) {
+function appPanel(title, campaign) {
   return `<div class="panel app">
         <img src="/img/pocket-logic.png" alt="KinQueens icon" width="64" height="64">
         <div>
-          <p><strong>Same board in the app.</strong> KinQueens has today’s ${title} plus hundreds of levels, streaks and hints. Free, works offline.</p>
-          <a class="play" href="${PLAY_URL}">${PLAY_SVG}Play in the app</a>
+          <p><strong>More in the app.</strong> KinQueens has its own daily ${title} plus hundreds of levels, streaks and hints. Free, works offline.</p>
+          <a class="play" href="${PLAY_URL}&amp;referrer=utm_source%3Dpanda.az%26utm_medium%3Dweb%26utm_campaign%3D${campaign}">${PLAY_SVG}Play in the app</a>
         </div>
       </div>`;
 }
@@ -291,7 +291,7 @@ function dayPage(game, day) {
   ${HEADER}
   <div class="crumb"><a href="/">Panda.az Studio</a> / <a href="/daily/">Daily puzzles</a> / <a href="/${G.slug}/archive/">${G.title}</a> / ${nice}</div>
   <div class="day-head">
-    <span class="kicker">${isToday ? 'Today’s' : 'Daily'} ${G.title}${isWeekend(day) ? ' · weekend size' : ''}</span>
+    <span class="kicker">panda.az daily · ${G.title}${isWeekend(day) ? ' · weekend size' : ''}</span>
     <h1>${G.title} puzzle for ${nice}</h1>
     <p>${G.rule}</p>
   </div>
@@ -326,7 +326,7 @@ ${ranked ? `      <div class="panel">
         <p class="lb-note" id="lb-count">Loading…</p>
         <p class="lb-note">Your first solve without hints is ranked. The top 100 can add a name.</p>
       </div>
-` : ''}      ${appPanel(G.title)}
+` : ''}      ${appPanel(G.title, `daily-${G.slug}`)}
     </div>
   </div>
 
@@ -402,7 +402,7 @@ function archivePage(game) {
   <section class="cal">
 ${blocks.join('\n')}
   </section>
-  <section>${appPanel(G.title)}</section>
+  <section>${appPanel(G.title, `daily-${G.slug}`)}</section>
   ${FOOTER}
 </div>
 <script>
@@ -444,7 +444,7 @@ ${cards.map((c) => '    ' + c).join('\n')}
 ${Object.entries(GAMES).map(([g, G]) => `      <a href="/${G.slug}/archive/">${G.title} archive</a>`).join('\n')}
     </div>
   </section>
-  <section>${appPanel('puzzles')}</section>
+  <section>${appPanel('puzzles', 'daily')}</section>
   ${FOOTER}
 </div>
 </body>
