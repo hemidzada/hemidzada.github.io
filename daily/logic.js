@@ -1,6 +1,6 @@
 // Puzzle generators, solvers and rule checks for the daily Queens, Zip and
-// Tango boards. A line-by-line port of KinQueens's lib/logic/*.dart, so a
-// given date gives the same board on the site and in the app.
+// Tango boards. A line-by-line port of KinQueens's lib/logic/*.dart. The site
+// has its own daily (not promised to match the app's daily for a date).
 // Used by the page script, the static build (tools/build-daily.mjs) and the
 // leaderboard edge function.
 
@@ -41,7 +41,7 @@ export function dailySeed(day, game) {
   return (y * 10000 + m * 100 + d) * 31 + GAMES.indexOf(game) * 7919;
 }
 
-/// Friday to Sunday boards are a size bigger, as in the app.
+/// Friday to Sunday boards are a size bigger.
 export function isWeekend(day) {
   const [y, m, d] = day.split('-').map(Number);
   const wd = new Date(Date.UTC(y, m - 1, d)).getUTCDay(); // 0 = Sunday
