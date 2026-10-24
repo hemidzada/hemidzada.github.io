@@ -18,6 +18,16 @@ function load() {
     return {};
   }
 }
+// Random id this browser keeps, so the leaderboard counts one solve per player.
+function playerId() {
+  try {
+    let p = localStorage.getItem('panda-daily:player');
+    if (!p) localStorage.setItem('panda-daily:player', (p = crypto.randomUUID()));
+    return p;
+  } catch {
+    return undefined;
+  }
+}
 function save(v) {
   try {
     localStorage.setItem(storeKey, JSON.stringify(v));
@@ -645,7 +655,7 @@ function startGame() {
   t0 = performance.now();
   tick = setInterval(() => ($('#timer').textContent = fmt(performance.now() - t0)), 250);
   if (P.live) {
-    api('start', { game, day })
+    api('start', { game, day, player: playerId() })
       .then((r) => (runId = r.id))
       .catch(() => {});
   }

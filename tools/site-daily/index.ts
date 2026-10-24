@@ -1,11 +1,12 @@
 // panda.az daily puzzle leaderboard (Supabase edge function "site-daily").
-//   POST /start  {game, day}         -> {id}           server starts the clock
+//   POST /start  {game, day, player} -> {id}           server starts the clock
 //   POST /finish {id, answer}        -> {ms, rank, total, counted}
 //   POST /name   {id, name}          -> {ok}            top 100 only
 //   GET  /top?game=&day=&me=<id>     -> {total, top: [{rank, name, ms, me}]}
 // The answer is checked against the regenerated daily board, the time is
-// measured on the server, only the first solve per network (hashed IP) per
-// board counts.
+// measured on the server. Only the first solve per player per board counts
+// (player = a random id the browser keeps), and at most NET_CAP per network.
+// ip_hash holds "<network hash>:<player hash>" (older rows: network only).
 // Deploy: upload this file plus daily/logic.js as ./logic.js (the function
 // imports it from its own folder); both from the same commit.
 import { createClient } from 'npm:@supabase/supabase-js@2.45.4';
@@ -17,6 +18,7 @@ const GAMES = ['queens', 'zip', 'tango'];
 const RANKED_FROM = '2026-10-23';
 const MIN_MS = 5000;
 const MAX_MS = 6 * 3600e3;
+const NET_CAP = 5;
 
 const CORS = {
   'access-control-allow-origin': '*',
@@ -31,11 +33,12 @@ const bakuDay = (offset = 0) => new Date(Date.now() + 4 * 3600e3 + offset * 864e
 const openDay = (day: string) => day >= RANKED_FROM && (day === bakuDay() || day === bakuDay(-1));
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
-async function ipHash(req: Request, day: string) {
-  const ip = (req.headers.get('x-forwarded-for') ?? '').split(',')[0].trim() || 'unknown';
-  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`${ip}|${day}|${SALT}`));
+async function hash(key: string, day: string) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`${key}|${day}|${SALT}`));
   return [...new Uint8Array(buf)].slice(0, 12).map((b) => b.toString(16).padStart(2, '0')).join('');
 }
+const ipHash = (req: Request, day: string) =>
+  hash((req.headers.get('x-forwarded-for') ?? '').split(',')[0].trim() || 'unknown', day);
 
 const puzzles = new Map<string, unknown>();
 function puzzle(game: string, day: string) {
@@ -91,13 +94,14 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
 
     if (route === 'start') {
-      const { game, day } = body;
+      const { game, day, player } = body;
       if (!GAMES.includes(game) || typeof day !== 'string' || !openDay(day)) return fail('closed');
-      const ip_hash = await ipHash(req, day);
+      const net = await ipHash(req, day);
       const since = new Date(Date.now() - 10 * 60e3).toISOString();
       const { count } = await db.from('site_daily_runs').select('id', { count: 'exact', head: true })
-        .eq('ip_hash', ip_hash).gte('started_at', since);
+        .like('ip_hash', `${net}%`).gte('started_at', since);
       if ((count ?? 0) >= 30) return fail('slow_down', 429);
+      const ip_hash = typeof player === 'string' && UUID.test(player) ? `${net}:${await hash('p' + player, day)}` : net;
       const { data, error } = await db.from('site_daily_runs').insert({ game, day, ip_hash }).select('id').single();
       if (error) throw error;
       return json({ id: data.id });
@@ -111,9 +115,14 @@ Deno.serve(async (req) => {
       const ms = Date.now() - Date.parse(run.started_at);
       if (ms < MIN_MS || ms > MAX_MS) return fail('bad_time');
       if (!isSolved(puzzle(run.game, run.day), body.answer)) return fail('wrong');
-      const { count: prior } = await db.from('site_daily_runs').select('id', { count: 'exact', head: true })
-        .eq('game', run.game).eq('day', run.day).eq('ip_hash', run.ip_hash).eq('counted', true);
-      let counted = !prior;
+      const [net, who] = run.ip_hash.split(':');
+      const ranked = () => db.from('site_daily_runs').select('id', { count: 'exact', head: true })
+        .eq('game', run.game).eq('day', run.day).eq('counted', true);
+      const [{ count: mine }, { count: onNet }] = await Promise.all([
+        who ? ranked().like('ip_hash', `%:${who}`) : ranked().eq('ip_hash', net),
+        ranked().like('ip_hash', `${net}%`),
+      ]);
+      let counted = !mine && (onNet ?? 0) < NET_CAP;
       const upd = await db.from('site_daily_runs').update({ finished_at: new Date().toISOString(), ms, counted }).eq('id', run.id);
       if (upd.error) {
         // Lost a race with another tab: keep the time, unranked.
