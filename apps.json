@@ -18,6 +18,12 @@
       "name": "Kinwords",
       "tagline": "Word solitaire with categories",
       "icon": "https://panda.az/img/pocket-words.png?v=2026-10-23"
+    },
+    {
+      "package": "com.pandaaz.pocketcards",
+      "name": "Sunday Solitaire",
+      "tagline": "Klondike, Spider, FreeCell and more",
+      "icon": "https://panda.az/img/pocket-cards.png?v=2026-10-24"
     }
   ]
 }
