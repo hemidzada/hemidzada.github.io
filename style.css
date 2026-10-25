@@ -20,6 +20,7 @@
   .wordmark span { display: block; font-weight: 600; font-size: 11px; letter-spacing: .28em; color: var(--muted); margin-top: 3px; }
   nav a { font-weight: 600; font-size: 15px; text-decoration: none; color: var(--muted); margin-left: 18px; }
   nav a:hover { color: var(--fg); }
+  @media (max-width: 420px) { nav a { margin-left: 14px; } nav a.opt { display: none; } }
 
   .hero { display: grid; gap: 28px; align-items: center; padding: 32px 0 48px; }
   .hero-mark { width: 168px; height: 168px; border-radius: 50%; background: var(--mark-bg); justify-self: start; }
