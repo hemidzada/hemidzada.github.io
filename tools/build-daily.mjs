@@ -251,7 +251,7 @@ function appPanel(title, campaign) {
         <img src="/img/pocket-logic.png" alt="KinQueens icon" width="64" height="64">
         <div>
           <p><strong>More in the app.</strong> KinQueens has its own daily ${title} plus hundreds of levels, streaks and hints. Free, works offline.</p>
-          <a class="play" href="${PLAY_URL}&amp;referrer=utm_source%3Dpanda.az%26utm_medium%3Dweb%26utm_campaign%3D${campaign}">${PLAY_SVG}Play in the app</a>
+          <a class="play" href="${PLAY_URL}&amp;referrer=utm_source%3Dpanda.az%26utm_medium%3Dweb%26utm_campaign%3D${campaign}">${PLAY_SVG}Get it on Android</a>
         </div>
       </div>`;
 }
