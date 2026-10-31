@@ -139,6 +139,48 @@
     <img src="/img/shots/pocket-logic-1.webp" alt="A Queens puzzle board in KinQueens" width="450" height="800">
   </div>
 
+
+  <section id="play" class="practice">
+    <h2>Play unlimited Queens</h2>
+    <p>A fresh board every time, made in your browser and checked by a solver, so it has exactly one solution. Tap a cell once for ✕, twice for a crown.</p>
+    <div class="sizes" role="group" aria-label="Board size">
+      <a href="?n=6#play" data-n="6">6×6 easy</a>
+      <a href="?n=7#play" data-n="7">7×7 medium</a>
+      <a href="?n=8#play" data-n="8">8×8 hard</a>
+    </div>
+    <div class="play-area">
+      <div class="game-card">
+        <div class="bar"><span class="timer" id="timer">0:00</span><span class="size" id="size"></span></div>
+        <div class="stage">
+          <div class="board" id="board" aria-label="Queens board"></div>
+          <div class="cover" id="cover"><button class="btn" id="start" type="button">Start</button></div>
+        </div>
+        <div class="tools">
+          <button id="undo" type="button" disabled>Undo</button>
+          <button id="clear" type="button" disabled>Clear</button>
+          <button id="hint" type="button" disabled>Hint</button>
+          <a class="new" id="new" href="#play">New puzzle</a>
+        </div>
+        <div class="win" id="win" aria-live="polite">
+          <h3 id="win-title"></h3>
+          <p id="win-text"></p>
+          <form class="name-form" id="name-form" hidden><input id="name"><button type="submit">-</button></form>
+          <div class="msg" id="name-msg"></div>
+        </div>
+      </div>
+      <div class="side">
+        <div class="panel app">
+          <img src="/img/pocket-logic.png" alt="KinQueens icon" width="64" height="64">
+          <div>
+            <p><strong>Take Queens with you.</strong> KinQueens has hundreds of levels from warm-up to expert, a daily board, streaks and hints. Free, works offline.</p>
+            <a class="play" href="https://play.google.com/store/apps/details?id=com.pandaaz.pocketlogic&amp;referrer=utm_source%3Dpanda.az%26utm_medium%3Dweb%26utm_campaign%3Dqueens-unlimited"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M5 3.5v17a1 1 0 0 0 1.5.86l14.2-8.5a1 1 0 0 0 0-1.72L6.5 2.64A1 1 0 0 0 5 3.5z"/></svg>Get it on Android</a>
+          </div>
+        </div>
+        <!-- kindoku-badge: add a second .panel.app here (Kindoku, utm_campaign=queens-unlimited) on Kindoku LIVE day -->
+      </div>
+    </div>
+  </section>
+
   <section class="prose">
     <h2>Queens rules</h2>
     <ul>
@@ -200,5 +242,23 @@
     © 2026 Panda.az Studio
   </footer>
 </div>
+<script type="module">
+import { Rng, generateQueens, gradeQueens } from '/daily/logic.js';
+const q = new URLSearchParams(location.search);
+const n = [6, 7, 8].includes(+q.get('n')) ? +q.get('n') : 7;
+const seed = (Math.random() * 2 ** 31) >>> 0;
+const rng = new Rng(seed);
+let p;
+do p = generateQueens(n, rng); while (gradeQueens(p) > 4);
+const el = document.createElement('script');
+el.type = 'application/json'; el.id = 'puzzle';
+el.textContent = JSON.stringify({ ...p, day: 'practice-' + seed, live: false, practice: true });
+document.body.appendChild(el);
+document.getElementById('size').textContent = n + '×' + n;
+document.getElementById('board').setAttribute('aria-label', `Queens board, ${n} by ${n}`);
+document.querySelectorAll('.sizes a').forEach((a) => a.toggleAttribute('aria-current', +a.dataset.n === n));
+document.getElementById('new').href = `?n=${n}&r=${seed}#play`;
+await import('/daily/play.js');
+</script>
 </body>
 </html>
