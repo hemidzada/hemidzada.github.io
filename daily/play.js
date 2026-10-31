@@ -701,7 +701,9 @@ function showWin(ms, again) {
   const w = $('#win');
   w.classList.add('show');
   $('#win-title').textContent = assisted ? 'Solved with hints' : `Solved in ${fmtPrecise(ms)}`;
-  $('#win-text').textContent = again
+  $('#win-text').textContent = P.practice
+    ? 'Nice! Pick a size and tap New puzzle for another board.'
+    : again
     ? 'You already solved this board on this device.'
     : assisted
       ? 'Hints were used, so this run is not ranked. Try tomorrow’s board without hints.'

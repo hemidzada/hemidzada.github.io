@@ -340,7 +340,7 @@ ${ranked ? `      <div class="panel">
     <h2>How to play</h2>
     <p>${G.title} for ${nice} is ${f.lead}. ${G.rule}</p>
     <p>${G.how}</p>
-    <p>New to ${G.title}? Read the <a href="/${G.slug}/">${G.title} rules and strategy guide</a>.</p>
+    <p>New to ${G.title}? Read the <a href="/${G.slug}/">${G.title} rules and strategy guide</a>.${game === 'queens' ? ' Want more boards today? <a href="/queens/#play">Play unlimited Queens</a>.' : ''}</p>
   </section>
 
   <section class="prose">
