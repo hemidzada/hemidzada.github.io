@@ -16,3 +16,6 @@
 /pocketwords /kinwords/ 301
 /pocketwords/ /kinwords/ 301
 /pocketwords/index.html /kinwords/ 301
+# Tape Art working name became Peelo (H-1101-1).
+/tape-art /peelo/ 301
+/tape-art/* /peelo/:splat 301
