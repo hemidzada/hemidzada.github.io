@@ -2,6 +2,12 @@
   "_note": "Cross-promo list read by our apps (More from Panda.az). When an icon changes: replace img/<app>.png AND bump ?v= so apps download it again. SquishyCast (Families) is not listed and never reads this file.",
   "apps": [
     {
+      "package": "com.pandaaz.pocketcards",
+      "name": "Sunday Solitaire",
+      "tagline": "Klondike, Spider, FreeCell and more",
+      "icon": "https://panda.az/img/pocket-cards.png?v=2026-10-24"
+    },
+    {
       "package": "com.studio.traintracks",
       "name": "Train Tracks",
       "tagline": "Railway logic puzzles, 2000 levels",
@@ -20,10 +26,10 @@
       "icon": "https://panda.az/img/pocket-words.png?v=2026-10-23"
     },
     {
-      "package": "com.pandaaz.pocketcards",
-      "name": "Sunday Solitaire",
-      "tagline": "Klondike, Spider, FreeCell and more",
-      "icon": "https://panda.az/img/pocket-cards.png?v=2026-10-24"
+      "package": "com.pandaaz.getaway",
+      "name": "Escape Getaway",
+      "tagline": "Arcade police chase, 14 cars",
+      "icon": "https://panda.az/img/escape-getaway.png?v=2026-10-31"
     }
   ]
 }
