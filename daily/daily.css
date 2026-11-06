@@ -91,3 +91,7 @@ details.answer summary { cursor: pointer; font-weight: 700; min-height: 44px; di
 .hub .mini { margin-top: 14px; max-width: 240px; }
 .hub .mini svg { display: block; }
 .daily-strip { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center; margin-top: 14px; }
+.practice .sizes { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; }
+.practice .sizes a { padding: 8px 14px; border: 1px solid var(--line); border-radius: 999px; text-decoration: none; color: inherit; font-weight: 600; font-size: 14px; }
+.practice .sizes a[aria-current] { background: var(--fg); border-color: var(--fg); color: var(--bg); }
+.tools .new { margin-left: auto; align-self: center; font-weight: 700; color: var(--accent-text); text-decoration: none; }
