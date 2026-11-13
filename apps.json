@@ -30,6 +30,12 @@
       "name": "Escape Getaway",
       "tagline": "Arcade police chase, 14 cars",
       "icon": "https://panda.az/img/escape-getaway.png?v=2026-10-31"
+    },
+    {
+      "package": "com.pandaaz.kindoku",
+      "name": "Kindoku",
+      "tagline": "Cat sudoku: one cat per row, column and colour",
+      "icon": "https://panda.az/img/kindoku.png?v=2026-11-13"
     }
   ]
 }
