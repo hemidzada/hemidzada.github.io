@@ -36,6 +36,12 @@
       "name": "Kindoku",
       "tagline": "Cat sudoku: one cat per row, column and colour",
       "icon": "https://panda.az/img/kindoku.png?v=2026-11-13"
+    },
+    {
+      "package": "com.pandaaz.onelinepuzzle",
+      "name": "Draw One Line",
+      "tagline": "Draw each figure in one stroke",
+      "icon": "https://panda.az/img/one-line.png?v=2026-11-25"
     }
   ]
 }
